@@ -16,7 +16,13 @@ const handler = NextAuth({
             }
         }),
     ],
+    debug: true,  // This will show detailed debug information
     callbacks: {
+        async signIn({ user, account, profile, email, credentials }) {
+            // Log the redirect URI being used
+            console.log('Redirect URI:', account.redirect_uri);
+            return true;
+        },
         async jwt({ token, user }) {
             if (user) {
                 token.id = user.id;
@@ -30,7 +36,6 @@ const handler = NextAuth({
             return session;
         },
     },
-    debug: true, // Enable this temporarily to see detailed error messages
 });
 
 export { handler as GET, handler as POST };
