@@ -4,7 +4,6 @@
 import { useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { signIn, useSession } from "next-auth/react";
-import type { Session } from "next-auth";
 
 export default function LoginPage() {
     const searchParams = useSearchParams();
