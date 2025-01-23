@@ -4,13 +4,13 @@
 import { useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { signIn, useSession } from "next-auth/react";
+import type { Session } from "next-auth";
 
 export default function LoginPage() {
     const searchParams = useSearchParams();
     const sessionId = searchParams.get('sessionId');
     const { data: session } = useSession();
 
-    // Handle successful authentication
     useEffect(() => {
         const sendTokenToGoServer = async (token: string) => {
             try {
@@ -26,7 +26,6 @@ export default function LoginPage() {
                 });
 
                 if (response.ok) {
-                    // Close the window after successful token transmission
                     window.close();
                 } else {
                     console.error('Failed to send token to server');
@@ -36,9 +35,9 @@ export default function LoginPage() {
             }
         };
 
-        // If we have a session and access token, send it to the Go server
+        // Check if we have both session and accessToken
         if (session?.accessToken && sessionId) {
-            sendTokenToGoServer(session.accessToken as string);
+            sendTokenToGoServer(session.accessToken);
         }
     }, [session, sessionId]);
 

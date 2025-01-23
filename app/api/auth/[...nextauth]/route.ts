@@ -1,8 +1,9 @@
 // app/api/auth/[...nextauth]/route.ts
 import NextAuth from "next-auth"
 import GoogleProvider from "next-auth/providers/google"
+import { JWT } from "next-auth/jwt"
+import { Session } from "next-auth"
 
-// This handler will manage all authentication routes (/api/auth/*)
 const handler = NextAuth({
     providers: [
         GoogleProvider({
@@ -10,18 +11,19 @@ const handler = NextAuth({
             clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
         }),
     ],
-    // We want to handle the callbacks to get the token
     callbacks: {
-        async jwt({ token, account }) {
+        async jwt({ token, account }): Promise<JWT> {
             // Persist the OAuth access_token to the token right after signin
             if (account) {
                 token.accessToken = account.access_token
             }
             return token
         },
-        async session({ session, token }) {
-            // Send properties to the client
-            session.accessToken = token.accessToken
+        async session({ session, token }): Promise<Session> {
+            // Now TypeScript knows that session might have an accessToken
+            if (token.accessToken) {
+                session.accessToken = token.accessToken as string
+            }
             return session
         },
     }
