@@ -9,6 +9,17 @@ declare module "next-auth" {
     }
 }
 
+// Helper to get the base URL for the application
+const getBaseUrl = () => {
+    if (process.env.VERCEL_URL) {
+        return `https://${process.env.VERCEL_URL}`;
+    }
+    if (process.env.NEXTAUTH_URL) {
+        return process.env.NEXTAUTH_URL;
+    }
+    return 'http://localhost:3000';
+};
+
 export const authOptions: AuthOptions = {
     providers: [
         GoogleProvider({
@@ -26,7 +37,6 @@ export const authOptions: AuthOptions = {
     ],
     callbacks: {
         async jwt({ token, account }) {
-            // Initial sign in
             if (account) {
                 return {
                     ...token,
@@ -36,12 +46,15 @@ export const authOptions: AuthOptions = {
                 }
             }
 
-            // Return the previous token if it hasn't expired
-            if (token.expiresAt && Date.now() < token.expiresAt) {
-                return token
+            // Add debug logging for token refresh
+            if (token.expiresAt && Date.now() >= token.expiresAt) {
+                console.log('Token expired, attempting refresh...');
             }
 
-            // Token has expired, try to refresh it
+            if (token.expiresAt && Date.now() < token.expiresAt) {
+                return token;
+            }
+
             try {
                 const response = await fetch('https://oauth2.googleapis.com/token', {
                     method: 'POST',
@@ -52,30 +65,47 @@ export const authOptions: AuthOptions = {
                         grant_type: 'refresh_token',
                         refresh_token: token.refreshToken as string,
                     }),
-                })
+                });
 
-                const tokens = await response.json()
+                const tokens = await response.json();
 
                 if (!response.ok) {
-                    console.error('Token refresh error:', tokens)
-                    throw tokens
+                    console.error('Token refresh error:', {
+                        status: response.status,
+                        tokens,
+                    });
+                    throw tokens;
                 }
+
+                console.log('Token refreshed successfully');
 
                 return {
                     ...token,
                     accessToken: tokens.access_token,
                     expiresAt: Date.now() + tokens.expires_in * 1000,
-                }
+                };
             } catch (error) {
-                console.error('Error refreshing access token:', error)
-                return { ...token, error: 'RefreshAccessTokenError' }
+                console.error('Error refreshing access token:', error);
+                return { ...token, error: 'RefreshAccessTokenError' };
             }
         },
         async session({ session, token }) {
-            session.accessToken = token.accessToken as string
-            session.error = token.error
-            return session
+            session.accessToken = token.accessToken as string;
+            session.error = token.error;
+            return session;
         },
     },
     debug: process.env.NODE_ENV === 'development',
-};
+    // Add better security with secure cookies in production
+    cookies: {
+        sessionToken: {
+            name: process.env.NODE_ENV === 'production' ? '__Secure-next-auth.session-token' : 'next-auth.session-token',
+            options: {
+                httpOnly: true,
+                sameSite: 'lax',
+                path: '/',
+                secure: process.env.NODE_ENV === 'production',
+            },
+        },
+    },
+}
