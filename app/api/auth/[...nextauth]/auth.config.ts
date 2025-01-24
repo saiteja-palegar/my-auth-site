@@ -10,15 +10,6 @@ declare module "next-auth" {
 }
 
 // Helper to get the base URL for the application
-const getBaseUrl = () => {
-    if (process.env.VERCEL_URL) {
-        return `https://${process.env.VERCEL_URL}`;
-    }
-    if (process.env.NEXTAUTH_URL) {
-        return process.env.NEXTAUTH_URL;
-    }
-    return 'http://localhost:3000';
-};
 
 export const authOptions: AuthOptions = {
     providers: [

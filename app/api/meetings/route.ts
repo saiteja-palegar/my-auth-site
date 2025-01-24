@@ -27,6 +27,7 @@ export async function GET() {
         // Calculate time boundaries
         const now = new Date().toISOString();
         const thirtyDaysFromNow = new Date();
+        console.log("Token:", session.accessToken)
         thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
 
         // Create the URL with proper parameters
