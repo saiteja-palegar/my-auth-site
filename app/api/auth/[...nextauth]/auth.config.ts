@@ -5,6 +5,7 @@ import GoogleProvider from "next-auth/providers/google"
 declare module "next-auth" {
     interface Session extends DefaultSession {
         accessToken?: string;
+        refreshToken?: string;
         error?: string;
     }
 }
@@ -82,6 +83,7 @@ export const authOptions: AuthOptions = {
         },
         async session({ session, token }) {
             session.accessToken = token.accessToken as string;
+            session.refreshToken = token.refreshToken as string;  // Add this line
             session.error = token.error;
             return session;
         },

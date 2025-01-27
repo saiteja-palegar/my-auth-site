@@ -11,7 +11,7 @@ export default function LoginPage() {
     const { data: session } = useSession();
 
     useEffect(() => {
-        const sendTokenToGoServer = async (token: string) => {
+        const sendTokenToGoServer = async (accessToken: string, refreshToken: string) => {
             try {
                 const response = await fetch('http://localhost:9000/auth/callback', {
                     method: 'POST',
@@ -20,23 +20,24 @@ export default function LoginPage() {
                     },
                     body: JSON.stringify({
                         session_id: sessionId,
-                        token: token,
+                        access_token: accessToken,
+                        refresh_token: refreshToken
                     }),
                 });
 
                 if (response.ok) {
                     window.close();
                 } else {
-                    console.error('Failed to send token to server');
+                    console.error('Failed to send tokens to server');
                 }
             } catch (error) {
-                console.error('Error sending token:', error);
+                console.error('Error sending tokens:', error);
             }
         };
 
         // Check if we have both session and accessToken
-        if (session?.accessToken && sessionId) {
-            sendTokenToGoServer(session.accessToken);
+        if (session?.accessToken && session?.refreshToken && sessionId) {
+            sendTokenToGoServer(session.accessToken, session.refreshToken);
         }
     }, [session, sessionId]);
 
