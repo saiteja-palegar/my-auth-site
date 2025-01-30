@@ -1,10 +1,7 @@
 // app/home/page.tsx
 import MeetingsList from "@/components/MeetingList";
 import TasksList from "@/components/TasksLists";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "../api/auth/[...nextauth]/auth.config";
 export default async function YourPage() {
-    const session = await getServerSession(authOptions);
 
     return (
         <div className="container mx-auto p-4 text-white">
